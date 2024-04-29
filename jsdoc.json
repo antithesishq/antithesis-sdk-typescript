@@ -1,0 +1,23 @@
+{
+  "source": {
+    "include": [
+      "dist/src/assert",
+      "dist/src/lifecycle",
+      "dist/src/random"
+    ]
+  },
+  "plugins": [],
+  "templates": {
+    "default": {
+      "outputSourceFiles": false
+    },
+    "cleverlinks": false,
+    "monospacelinks": true
+  },
+  "opts": {
+    "recurse": true,
+    "destination": "./docs/",
+    "encoding": "utf8",
+    "verbose": true
+  }
+}
