@@ -2,7 +2,7 @@
  * random - Antithesis SDK
  * @module antithesis-sdk/random
  */
-import { libvstar } from '../internal'
+import * as internal from '../internal'
 
 /**
  * Returns an integer value chosen by Antithesis.
@@ -10,7 +10,7 @@ import { libvstar } from '../internal'
  * but should use it immediately.
  */
 export const GetRandom = () => {
-    return libvstar.Get_random()
+    return Number(internal.randomU64()) // FIXME
 }
 
 /**
