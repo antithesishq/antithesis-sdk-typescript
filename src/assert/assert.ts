@@ -4,7 +4,7 @@
  */
 import type { JSONObject } from '../internal'
 import * as internal from '../internal'
-import type { LocationInfo } from './location'
+import { type LocationInfo, locationToJSON } from './location'
 import { Tracker } from './tracker'
 
 export type AssertType = 'always' | 'sometimes' | 'reachability'
@@ -31,13 +31,7 @@ export function registerAssertion({
         antithesis_assert: {
             id,
             message,
-            location: {
-                class: location.classname,
-                function: location.function,
-                file: location.filename,
-                begin_line: location.line,
-                begin_column: location.column,
-            },
+            location: locationToJSON(location),
             assert_type: assertType,
             must_hit: mustHit,
             display_type: displayType,
@@ -54,13 +48,7 @@ const ASSERTION_TRACKER: Tracker<string, { pass: number; fail: number }> =
 export function hitAssertion({
     id,
     message,
-    location = LOCATION_TRACKER.getOr(id, () => ({
-        classname: '',
-        function: '',
-        filename: '',
-        line: 0,
-        column: 0,
-    })),
+    location = LOCATION_TRACKER.getOr(id, () => ({})),
     assertType,
     mustHit,
     displayType = defaultDisplayType(assertType, mustHit),
@@ -90,17 +78,11 @@ export function hitAssertion({
         internal.output({
             antithesis_assert: {
                 id,
+                message,
+                location: locationToJSON(location),
                 assert_type: assertType,
                 must_hit: mustHit,
                 display_type: displayType,
-                message,
-                location: {
-                    class: location.classname,
-                    function: location.function,
-                    file: location.filename,
-                    begin_line: location.line,
-                    begin_column: location.column,
-                },
                 hit: true,
                 condition,
                 details,
