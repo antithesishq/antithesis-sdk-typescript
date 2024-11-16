@@ -111,6 +111,7 @@
     "package.json"
   ],
   "exclude": [
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/**/*.mock.ts"
   ]
 }

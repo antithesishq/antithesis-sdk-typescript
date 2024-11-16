@@ -1,5 +1,5 @@
 {
-  "name": "ant-sdk-js",
+  "name": "antithesis-sdk",
   "version": "0.1.0",
   "description": "Antithesis SDK for Typescript and Javascript",
   "main": "dist/src/index.js",

@@ -1,5 +1,6 @@
 import { type LocationInfo } from './location'
-import { libvstar, JSONValue } from '../internal'
+import { JSONValue } from '../internal'
+import * as internal from '../internal'
 
 export type AssertType = 'every' | 'some' | 'none'
 
@@ -60,5 +61,5 @@ export const emit_assertion = (ti: TrackerInfo, ai: AssertInfo) => {
 }
 
 const do_emit = (ai: AssertInfo) => {
-    libvstar.Json_data(assert_info_tag, { ...ai })
+    internal.output({ antithesis_assert: ai })
 }
