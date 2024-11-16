@@ -2,250 +2,120 @@
  * assert - Antithesis SDK
  * @module antithesis-sdk/assert
  */
-import { type JSONValue } from '../internal'
-export { type JSONValue }
-import {
-    type LocationInfo,
-    offsetAPICaller,
-    newLocationInfo,
-    columnUnknown,
-} from './location'
-import { get_tracker_entry, emit_assertion } from './tracker'
-import { type AssertType, AssertInfo } from './tracker'
+import type { JSONObject } from '../internal'
+import * as internal from '../internal'
+import type { LocationInfo } from './location'
+import { Tracker } from './tracker'
 
-const was_hit = true
-const must_be_hit = true
-const optionally_hit = false
-const expecting_true = true
+export type AssertType = 'always' | 'sometimes' | 'reachability'
 
-const universal_test = 'every'
-const existential_test = 'some'
-const reachability_test = 'none'
+export const LOCATION_TRACKER: Tracker<string, LocationInfo> = new Tracker()
 
-/**
- * Assert that condition is true every time this function is called,
- * AND that it is called at least once. This test property will be
- * viewable in the "Antithesis SDK: Always" group of the triage report.
- *
- * @param {string} message will be used as a display name in reporting
- * and should therefore be useful to a broad audience.
- *
- * @param {boolean} condition to be tested.
- *
- * @param {Object} values is used to supply context useful
- * for understanding the reason that condition had the value it did.
- * For instance, in an asertion that x > 5, it could be helpful to send
- * the value of x so failing cases can be better understood.
- */
-export const Always = (
-    message: string,
-    condition: boolean,
-    values: JSONValue
-) => {
-    const location_info = newLocationInfo(offsetAPICaller)
-    assertImpl(
-        message,
-        condition,
-        values,
-        location_info,
-        was_hit,
-        must_be_hit,
-        expecting_true,
-        universal_test
-    )
-}
-
-/**
- * Assert that condition is true every time this function is called.
- * Unlike the Always function, the test property spawned by AlwaysOrUnreachable
- * will not be marked as failing if the function is never invoked.
- * This test property will be viewable in the "Antithesis SDK: Always"
- * group of the triage report.
- *
- * @param {string} message will be used as a display name in reporting
- * and should therefore be useful to a broad audience.
- *
- * @param {boolean} condition to be tested.
- *
- * @param {Object} values is used to supply context useful
- * for understanding the reason that condition had the value it did.
- * For instance, in an asertion that x > 5, it could be helpful to send
- * the value of x so failing cases can be better understood.
- */
-export const AlwaysOrUnreachable = (
-    message: string,
-    condition: boolean,
-    values: JSONValue
-) => {
-    const location_info = newLocationInfo(offsetAPICaller)
-    assertImpl(
-        message,
-        condition,
-        values,
-        location_info,
-        was_hit,
-        optionally_hit,
-        expecting_true,
-        universal_test
-    )
-}
-
-/**
- * Assert that condition is true at least one time that this function was called.
- * The test property spawned by Sometimes will be marked as failing if this
- * function is never called, or if condition is false every time that it is called.
- * This test property will be viewable in the "Antithesis SDK: Sometimes" group
- * of the triage report.
- *
- * @param {string} message will be used as a display name in reporting
- * and should therefore be useful to a broad audience.
- *
- * @param {boolean} condition to be tested.
- *
- * @param {Object} values is used to supply context useful
- * for understanding the reason that condition had the value it did.
- * For instance, in an asertion that x > 5, it could be helpful to send
- * the value of x so failing cases can be better understood.
- */
-export const Sometimes = (
-    message: string,
-    condition: boolean,
-    values: JSONValue
-) => {
-    const location_info = newLocationInfo(offsetAPICaller)
-    assertImpl(
-        message,
-        condition,
-        values,
-        location_info,
-        was_hit,
-        must_be_hit,
-        expecting_true,
-        existential_test
-    )
-}
-
-/**
- * Assert that a line of code is never reached.
- * The test property spawned by Unreachable will be marked as failing if this
- * function is ever called. This test property will be viewable in the
- * "Antithesis SDK: Reachablity assertions" group of the triage report.
- *
- * @param {string} message will be used as a display name in reporting
- * and should therefore be useful to a broad audience.
- *
- * @param {Object} values is used to supply context useful
- * for understanding the reason that condition had the value it did.
- * For instance, in an asertion that x > 5, it could be helpful to send
- * the value of x so failing cases can be better understood.
- */
-export const Unreachable = (message: string, values: JSONValue) => {
-    const location_info = newLocationInfo(offsetAPICaller)
-    assertImpl(
-        message,
-        true,
-        values,
-        location_info,
-        was_hit,
-        optionally_hit,
-        expecting_true,
-        reachability_test
-    )
-}
-
-/**
- * Assert that a line of code is reached at least once.
- * The test property spawned by Reachable will be marked as failing if
- * this function is never called. This test property will be viewable
- * in the "Antithesis SDK: Reachablity assertions" group of the
- * triage report.
- *
- * @param {string} message will be used as a display name in reporting
- * and should therefore be useful to a broad audience.
- *
- * @param {Object} values is used to supply context useful
- * for understanding the reason that condition had the value it did.
- * For instance, in an asertion that x > 5, it could be helpful to send
- * the value of x so failing cases can be better understood.
- */
-export const Reachable = (message: string, values: JSONValue) => {
-    const location_info = newLocationInfo(offsetAPICaller)
-    assertImpl(
-        message,
-        true,
-        values,
-        location_info,
-        was_hit,
-        must_be_hit,
-        expecting_true,
-        reachability_test
-    )
-}
-/** Unwrapped raw assertion access for custom tooling. Not to be called directly.
- */
-export const AssertRaw = (
-    message: string,
-    cond: boolean,
-    values: JSONValue,
-    classname: string,
-    funcname: string,
-    filename: string,
-    line: number,
-    hit: boolean,
-    must_hit: boolean,
-    expecting: boolean,
-    assert_type: AssertType
-) => {
-    const loc_info = {
-        classname,
-        ['function']: funcname,
-        filename,
-        line,
-        column: columnUnknown,
-    }
-    assertImpl(
-        message,
-        cond,
-        values,
-        loc_info,
-        hit,
-        must_hit,
-        expecting,
-        assert_type
-    )
-}
-
-const assertImpl = (
-    message: string,
-    cond: boolean,
-    values: JSONValue,
-    loc: LocationInfo,
-    hit: boolean,
-    must_hit: boolean,
-    expecting: boolean,
-    assert_type: AssertType
-) => {
-    const message_key = makeKey(loc)
-    const tracker_entry = get_tracker_entry(message_key)
-
-    if (tracker_entry) {
-        const aI: AssertInfo = {
-            hit,
-            must_hit,
-            assert_type,
-            expecting,
-            category: '',
+export function registerAssertion({
+    id,
+    message,
+    location,
+    assertType,
+    mustHit,
+    displayType = defaultDisplayType(assertType, mustHit),
+}: {
+    id: string
+    message: string
+    location: LocationInfo
+    assertType: AssertType
+    mustHit: boolean
+    displayType?: string
+}) {
+    LOCATION_TRACKER.set(id, location)
+    internal.output({
+        antithesis_assert: {
+            id,
             message,
-            condition: cond,
-            id: message_key,
-            location: loc,
-            details: values,
-        }
+            location: {
+                class: location.classname,
+                function: location.function,
+                file: location.filename,
+                begin_line: location.line,
+                begin_column: location.column,
+            },
+            assert_type: assertType,
+            must_hit: mustHit,
+            display_type: displayType,
+            hit: false,
+            condition: false,
+            details: null,
+        },
+    })
+}
 
-        emit_assertion(tracker_entry, aI)
+const ASSERTION_TRACKER: Tracker<string, { pass: number; fail: number }> =
+    new Tracker()
+
+export function hitAssertion({
+    id,
+    message,
+    location = LOCATION_TRACKER.getOr(id, () => ({
+        classname: '',
+        function: '',
+        filename: '',
+        line: 0,
+        column: 0,
+    })),
+    assertType,
+    mustHit,
+    displayType = defaultDisplayType(assertType, mustHit),
+    condition,
+    details = {},
+}: {
+    id: string
+    message: string
+    location: LocationInfo
+    assertType: AssertType
+    mustHit: boolean
+    displayType?: string
+    condition: boolean
+    details?: JSONObject
+}) {
+    const entry = ASSERTION_TRACKER.getOr(id, () => ({ pass: 0, fail: 0 }))
+    let emitting: boolean
+    if (condition) {
+        entry.pass += 1
+        emitting = entry.pass === 1
+    } else {
+        entry.fail += 1
+        emitting = entry.fail === 1
+    }
+
+    if (emitting) {
+        internal.output({
+            antithesis_assert: {
+                id,
+                assert_type: assertType,
+                must_hit: mustHit,
+                display_type: displayType,
+                message,
+                location: {
+                    class: location.classname,
+                    function: location.function,
+                    file: location.filename,
+                    begin_line: location.line,
+                    begin_column: location.column,
+                },
+                hit: true,
+                condition,
+                details,
+            },
+        })
     }
 }
 
-const makeKey = (loc: LocationInfo) => {
-    return `${loc.filename}|${loc.line}|${loc.column}`
+function defaultDisplayType(assertType: AssertType, mustHit: boolean): string {
+    switch (assertType) {
+        case 'always':
+            return mustHit ? 'Always' : 'AlwaysOrUnreachable'
+        case 'sometimes':
+            return 'Sometimes'
+        case 'reachability':
+            return mustHit ? 'Reachable' : 'Unreachable'
+    }
 }
