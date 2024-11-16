@@ -32,6 +32,23 @@ const assertion = (
     },
 })
 
+const guidance = (
+    type: 'numeric' | 'boolean',
+    maximize: boolean,
+    message: string,
+    data: internal.JSONObject
+) => ({
+    antithesis_guidance: {
+        guidance_type: type,
+        hit: true,
+        id: message,
+        message,
+        location: locationMatcher,
+        maximize,
+        guidance_data: data,
+    },
+})
+
 test('basic assertions', () => {
     outputSpy.mockClear()
 
@@ -47,5 +64,44 @@ test('basic assertions', () => {
         assertion('sometimes', 'basic 2', false, { n: 0 }),
         assertion('always', 'basic 1', true, { n: 6 }),
         assertion('sometimes', 'basic 2', true, { n: 6 }),
+    ])
+})
+
+test('rich assertions', () => {
+    outputSpy.mockClear()
+
+    for (let i = 0; i < 10; i += 1) {
+        const n = (i % 2 === 0 ? 1 : -1) * i
+        assert.alwaysGreaterThan(n, 5, 'rich 1', { n })
+        assert.sometimesGreaterThan(n, 5, 'rich 2', { n })
+    }
+
+    const events = outputSpy.mock.calls.map(([data]) => data)
+    const assertionEvents = events.filter(
+        (event) => event.antithesis_assert !== undefined
+    )
+    const guidanceEvents = events.filter(
+        (event) => event.antithesis_guidance !== undefined
+    )
+
+    expect(assertionEvents).toEqual([
+        assertion('always', 'rich 1', false, { n: 0, left: 0, right: 5 }),
+        assertion('sometimes', 'rich 2', false, { n: 0, left: 0, right: 5 }),
+        assertion('always', 'rich 1', true, { n: 6, left: 6, right: 5 }),
+        assertion('sometimes', 'rich 2', true, { n: 6, left: 6, right: 5 }),
+    ])
+
+    expect(guidanceEvents).toEqual([
+        guidance('numeric', false, 'rich 1', { left: 0, right: 5 }),
+        guidance('numeric', true, 'rich 2', { left: 0, right: 5 }),
+        guidance('numeric', false, 'rich 1', { left: -1, right: 5 }),
+        guidance('numeric', true, 'rich 2', { left: 2, right: 5 }),
+        guidance('numeric', false, 'rich 1', { left: -3, right: 5 }),
+        guidance('numeric', true, 'rich 2', { left: 4, right: 5 }),
+        guidance('numeric', false, 'rich 1', { left: -5, right: 5 }),
+        guidance('numeric', true, 'rich 2', { left: 6, right: 5 }),
+        guidance('numeric', false, 'rich 1', { left: -7, right: 5 }),
+        guidance('numeric', true, 'rich 2', { left: 8, right: 5 }),
+        guidance('numeric', false, 'rich 1', { left: -9, right: 5 }),
     ])
 })
