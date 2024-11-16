@@ -2,14 +2,15 @@
  * lifecycle - Antithesis SDK
  * @module antithesis-sdk/lifecycle
  */
-import { libvstar, JSONValue } from '../internal'
+import { JSONValue } from '../internal'
+import * as internal from '../internal'
 
 /**
  * Not associated with assertions, but enables
  * developer-defined events to be emitted.
  */
 export const LogEvent = (name: string, event: JSONValue) => {
-    libvstar.Json_data(name, event)
+    internal.output({ [`${name}`]: event })
 }
 
 /**
@@ -24,15 +25,4 @@ export const LogEvent = (name: string, event: JSONValue) => {
  */
 export const SetupComplete = () => {
     LogEvent('setup_status', 'complete')
-}
-
-/**
- * To provide context for local output
- */
-export const SetSourceName = (name: string) => {
-    libvstar.Set_source_name(name)
-}
-
-export const NoEmit = (): boolean => {
-    return libvstar.No_emit()
 }
