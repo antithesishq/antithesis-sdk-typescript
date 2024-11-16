@@ -2,15 +2,21 @@
  * lifecycle - Antithesis SDK
  * @module antithesis-sdk/lifecycle
  */
-import { JSONValue } from '../internal'
+import type { JSONValue } from '../internal'
 import * as internal from '../internal'
 
 /**
- * Not associated with assertions, but enables
- * developer-defined events to be emitted.
+ * Indicates to Antithesis that a certain event has been reached. It sends a
+ * structured log message to Antithesis that you may later use to aid debugging.
+ *
+ * @param {string} name - The name of the event that is being logged, which will
+ * be the top-level key in the generated event object.
+ *
+ * @param {JSONValue} details - Additional details that provide greater context for
+ * the lifecycle event. Evaluated at runtime.
  */
-export const LogEvent = (name: string, event: JSONValue) => {
-    internal.output({ [`${name}`]: event })
+export function sendEvent(name: string, details: JSONValue) {
+    internal.output({ [name]: details })
 }
 
 /**
@@ -23,6 +29,6 @@ export const LogEvent = (name: string, event: JSONValue) => {
  * have no effect. Antithesis will treat the first time any process called
  * this function as the moment that the setup was completed.
  */
-export const SetupComplete = () => {
-    LogEvent('setup_status', 'complete')
+export function setupComplete() {
+    internal.output({ antithesis_setup: 'complete' })
 }
