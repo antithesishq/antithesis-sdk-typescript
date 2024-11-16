@@ -1,6 +1,6 @@
 import { JSONObject } from '../internal'
 import { AssertType, LOCATION_TRACKER, hitAssertion } from './assert'
-import { newLocationInfo } from './location'
+import { locationAtCallStack } from './location'
 
 export { JSONObject, AssertType, hitAssertion }
 export { registerAssertion } from './assert'
@@ -147,6 +147,6 @@ function assertImpl(args: {
     details?: JSONObject
 }) {
     const id = args.message
-    const location = LOCATION_TRACKER.getOr(id, () => newLocationInfo(4))
+    const location = LOCATION_TRACKER.getOr(id, () => locationAtCallStack(4))
     hitAssertion({ id, location, ...args })
 }
