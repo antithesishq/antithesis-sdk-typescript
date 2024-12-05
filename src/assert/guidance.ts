@@ -1,5 +1,5 @@
 import * as internal from '../internal'
-import { locationToJSON, type LocationInfo } from './location'
+import { type LocationInfo, locationToJSON } from './location'
 import { Tracker } from './tracker'
 
 class NumericGuard {

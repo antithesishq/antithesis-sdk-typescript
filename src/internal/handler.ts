@@ -8,6 +8,32 @@ export interface LibHandler {
     outputJsonString(data: string): void
     // Randomly generate an unsigned 64-bit integer with uniform distribution.
     randomU64(): bigint
+    // Initialize a coverage module.
+    initCoverageModule(
+        edgeCount: number,
+        symbolFileName: string
+    ): CoverageModule
+}
+
+export interface CoverageModule {
+    // Notify a coverage edge is hit, with a module-local `edge` number
+    notify(edge: number): void
+}
+
+class BitSet {
+    #data: Uint8Array
+
+    constructor(size: number) {
+        this.#data = new Uint8Array(Math.ceil(size / 8))
+    }
+
+    set(n: number) {
+        this.#data[n >> 3] |= 1 << n % 8
+    }
+
+    get(n: number) {
+        return (this.#data[n >> 3] & (1 << n % 8)) !== 0
+    }
 }
 
 class LibVoidstar {
@@ -17,6 +43,12 @@ class LibVoidstar {
     // Returns a 64-bit unsigned integer, using the appropriate numeric type (`koffi` behavior)
     get_random: () => number | bigint
     flush: () => void
+    // Returns an unsigned integer being the "offset" of edges for the initialized coverage module
+    init_coverage_module: (
+        edgeCount: number,
+        symbolFileName: string
+    ) => number | bigint
+    notify_coverage: (edge: bigint) => boolean
 
     constructor(lib: koffi.IKoffiLib) {
         // NOTE: The `data` parameter is actually typed as `const char *`,
@@ -36,6 +68,17 @@ class LibVoidstar {
         )
         this.get_random = lib.func('uint64_t fuzz_get_random()')
         this.flush = lib.func('void fuzz_flush()')
+        // NOTE: `edge_count` being `size_t` can be in the range of `bigint`,
+        // but since it is an input parameter, and we should never encounter more than
+        // `Number.MAX_SAFE_INTEGER` of coverage edges in a single module,
+        // we can safely type it as `number` in JS.
+        this.init_coverage_module = lib.func(
+            'size_t init_coverage_module(size_t edge_count, const char* symbol_file_name)'
+        )
+        // NOTE: `edge` being `size_t` should be the module-local edge number
+        // plus the offset obtained when initializing the module,
+        // which potentially can be large, so we type it as `bigint`.
+        this.notify_coverage = lib.func('bool notify_coverage(size_t edge)')
     }
 }
 
@@ -55,6 +98,21 @@ class VoidstarHandler implements LibHandler {
 
     randomU64(): bigint {
         return BigInt(this.#lib.get_random())
+    }
+
+    initCoverageModule(count: number, symbolFileName: string) {
+        const offset = BigInt(
+            this.#lib.init_coverage_module(count, symbolFileName)
+        )
+        const visited = new BitSet(count)
+        const notify_coverage = this.#lib.notify_coverage
+        return {
+            notify(edge: number) {
+                if (visited.get(edge)) return
+                const notifyNext = notify_coverage(offset + BigInt(edge))
+                if (!notifyNext) visited.set(edge)
+            },
+        }
     }
 
     static load(libPath: string): VoidstarHandler | undefined {
@@ -101,6 +159,13 @@ class LocalHandler implements LibHandler {
             return undefined
         }
     }
+
+    initCoverageModule(
+        _edgeCount: number,
+        _symbolFileName: string
+    ): CoverageModule {
+        return { notify(_) {} }
+    }
 }
 
 class NoOpHandler implements LibHandler {
@@ -111,6 +176,13 @@ class NoOpHandler implements LibHandler {
         const array = new BigUint64Array(1)
         crypto.getRandomValues(array)
         return array[0]
+    }
+
+    initCoverageModule(
+        _edgeCount: number,
+        _symbolFileName: string
+    ): CoverageModule {
+        return { notify(_) {} }
     }
 }
 
