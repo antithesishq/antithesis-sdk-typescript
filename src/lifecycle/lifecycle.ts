@@ -1,7 +1,3 @@
-/**
- * lifecycle - Antithesis SDK
- * @module antithesis-sdk/lifecycle
- */
 import type { JSONValue } from '../internal'
 import * as internal from '../internal'
 

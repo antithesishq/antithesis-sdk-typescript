@@ -1,7 +1,3 @@
-/**
- * assert - Antithesis SDK
- * @module antithesis-sdk/assert
- */
 import type { JSONObject } from '../internal'
 import * as internal from '../internal'
 import { type LocationInfo, locationToJSON } from './location'

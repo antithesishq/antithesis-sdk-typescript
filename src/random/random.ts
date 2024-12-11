@@ -1,7 +1,3 @@
-/**
- * random - Antithesis SDK
- * @module antithesis-sdk/random
- */
 import * as internal from '../internal'
 
 /**
