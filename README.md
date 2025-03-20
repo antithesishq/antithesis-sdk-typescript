@@ -1,4 +1,6 @@
 Antithesis-SDK-JS
 =================
 
-Provides assertions, random and lifecycle functions for working with systems that can be tested with Antithesis
+### Under development ###
+This SDK is under development. Once ready, an offical version will be announced and a version will be available on NPM.
+
