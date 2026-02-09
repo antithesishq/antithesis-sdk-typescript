@@ -29,7 +29,7 @@
   "author": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/antithesishq/antithesis-sdk-typescript",
+    "url": "https://github.com/antithesishq/antithesis-sdk-typescript"
   },
   "license": "MIT",
   "devDependencies": {
