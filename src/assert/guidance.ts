@@ -14,7 +14,7 @@ class NumericGuard {
     }
 
     shouldEmit(value: number) {
-        if (this.#maximize ? this.#mark > value : this.#mark < value)
+        if (this.#maximize ? this.#mark >= value : this.#mark <= value)
             return false
 
         // Report NaN values, but don't let them update the mark.

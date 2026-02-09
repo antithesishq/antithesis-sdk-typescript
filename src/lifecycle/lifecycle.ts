@@ -19,7 +19,7 @@ export function sendEvent(name: string, details: JSONValue) {
  * Call this function when your system and workload are fully initialized.
  * After this function is called, the Antithesis environment will take a
  * snapshot of your system and begin
- * <a href="https://antithesis.com/docs/applications/reliability/fault_injection.html">injecting faults</a>.
+ * <a href="https://antithesis.com/docs/environment/fault_injection/">injecting faults</a>.
  *
  * Calling this function multiple times, or from multiple processes, will
  * have no effect. Antithesis will treat the first time any process called
