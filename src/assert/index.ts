@@ -113,7 +113,7 @@ export function unreachable(message: string, details?: JSONObject) {
         message,
         assertType: 'reachability',
         mustHit: false,
-        condition: true,
+        condition: false,
         details,
     })
 }
