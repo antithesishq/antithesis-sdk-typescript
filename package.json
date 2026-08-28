@@ -1,6 +1,6 @@
 {
   "name": "antithesis-sdk",
-  "version": "0.1.0-dev.1",
+  "version": "0.2.0",
   "description": "Antithesis SDK for Typescript and Javascript",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -49,6 +49,6 @@
     "vitest": "^2.1.5"
   },
   "dependencies": {
-    "koffi": "^2.7.3"
+    "koffi": "^2.12.1"
   }
 }

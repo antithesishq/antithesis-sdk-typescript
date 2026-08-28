@@ -1,4 +1,4 @@
-import type { JSONValue } from '../internal'
+import type { JSONObject, JSONValue } from '../internal'
 import * as internal from '../internal'
 
 /**
@@ -24,7 +24,10 @@ export function sendEvent(name: string, details: JSONValue) {
  * Calling this function multiple times, or from multiple processes, will
  * have no effect. Antithesis will treat the first time any process called
  * this function as the moment that the setup was completed.
+ *
+ * @param {JSONObject} details - Additional details that provide greater
+ * context for the setup event. Evaluated at runtime.
  */
-export function setupComplete() {
-    internal.output({ antithesis_setup: 'complete' })
+export function setupComplete(details: JSONObject = {}) {
+    internal.output({ antithesis_setup: { status: 'complete', details } })
 }

@@ -122,7 +122,8 @@ class VoidstarHandler implements LibHandler {
             return new VoidstarHandler(new LibVoidstar(lib))
         } catch (_e) {
             if (lib !== undefined) lib.unload()
-            console.log(
+            // stderr: stdout may be a data channel for the hosting process.
+            console.error(
                 `Failed to load libvoidstar at ${libPath}, falling back...`
             )
             return undefined
@@ -153,7 +154,7 @@ class LocalHandler implements LibHandler {
         try {
             const outputPath = process.env[outputPathVar]
             if (outputPath === undefined) return undefined
-            const fd = fs.openSync(outputPath, 'w')
+            const fd = fs.openSync(outputPath, 'a')
             return new LocalHandler(fd)
         } catch (_e) {
             return undefined

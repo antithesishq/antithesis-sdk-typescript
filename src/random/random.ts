@@ -56,11 +56,19 @@ export function random() {
  * to provide more interesting choices over time.
  */
 export function randomChoice(things: unknown[]) {
-    const num_things = things.length
-    if (num_things < 1) {
+    const numThings = things.length
+    if (numThings < 1) {
         return undefined
     }
+    if (numThings === 1) {
+        return things[0]
+    }
 
-    const index = Math.floor(random() * num_things)
-    return things[index]
+    const n = BigInt(numThings)
+    const ceiling = ((2n ** 64n - 1n) / n) * n
+    let v = internal.randomU64()
+    while (v >= ceiling) {
+        v = internal.randomU64()
+    }
+    return things[Number(v % n)]
 }

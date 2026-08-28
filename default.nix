@@ -10,6 +10,7 @@ let
       ./package.json
       ./package-lock.json
       ./tsconfig.json
+      ./vitest.config.ts
     ];
   };
 
@@ -20,6 +21,12 @@ let
       npmRoot = src;
     };
     npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+    doCheck = true;
+    checkPhase = ''
+      runHook preCheck
+      npm test
+      runHook postCheck
+    '';
   };
 in {
   inherit build;
