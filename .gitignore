@@ -3,3 +3,4 @@ coverage
 node_modules
 docs
 *.tgz
+src/internal/version.ts

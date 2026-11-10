@@ -33,7 +33,6 @@ export function registerAssertion({
             display_type: displayType,
             hit: false,
             condition: false,
-            details: null,
         },
     })
 }
@@ -50,7 +49,8 @@ export function hitAssertion({
     displayType = defaultDisplayType(assertType, mustHit),
     hit = true,
     condition,
-    details = {},
+    details,
+    guidanceDetails,
 }: {
     id: string
     message: string
@@ -60,7 +60,8 @@ export function hitAssertion({
     displayType?: string
     hit?: boolean
     condition: boolean
-    details?: JSONObject
+    details?: JSONObject | null
+    guidanceDetails?: JSONObject
 }) {
     if (hit) {
         const entry = ASSERTION_TRACKER.getOr(id, () => ({ pass: 0, fail: 0 }))
@@ -75,19 +76,24 @@ export function hitAssertion({
         if (!emitting) return
     }
 
-    internal.output({
-        antithesis_assert: {
-            id,
-            message,
-            location: locationToJSON(location),
-            assert_type: assertType,
-            must_hit: mustHit,
-            display_type: displayType,
-            hit,
-            condition,
-            details,
-        },
-    })
+    const assertion: JSONObject = {
+        id,
+        message,
+        location: locationToJSON(location),
+        assert_type: assertType,
+        must_hit: mustHit,
+        display_type: displayType,
+        hit,
+        condition,
+    }
+    internal.outputWithDetails(
+        { antithesis_assert: assertion },
+        assertion,
+        'details',
+        hit ? details : undefined,
+        id,
+        { guidanceDetails: hit ? guidanceDetails : undefined }
+    )
 }
 
 function defaultDisplayType(assertType: AssertType, mustHit: boolean): string {

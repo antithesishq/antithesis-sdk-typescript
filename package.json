@@ -1,14 +1,21 @@
 {
   "name": "antithesis-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Antithesis SDK for Typescript and Javascript",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=22"
+  },
   "exports": {
     ".": "./dist/src/index.js",
     "./internal": "./dist/src/internal/index.js"
   },
   "scripts": {
+    "write-version": "node scripts/write-version.js",
+    "prepare": "npm run write-version",
+    "prebuild": "npm run write-version",
+    "pretest": "npm run write-version",
     "build": "tsc",
     "build:all": "npm-run-all lint format test test:coverage clean && tsc",
     "clean": "rimraf ./dist ./docs",

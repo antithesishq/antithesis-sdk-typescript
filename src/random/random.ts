@@ -54,8 +54,10 @@ export function random() {
  * This function is not purely for convenience. Signaling to the Antithesis
  * platform that you intend to use a random value in a structured way enables it
  * to provide more interesting choices over time.
+ *
+ * Returns undefined for an empty array.
  */
-export function randomChoice(things: unknown[]) {
+export function randomChoice<T>(things: readonly T[]): T | undefined {
     const numThings = things.length
     if (numThings < 1) {
         return undefined

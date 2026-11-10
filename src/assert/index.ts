@@ -5,7 +5,11 @@ import { locationAtCallStack } from './location'
 
 export { JSONObject, AssertType, hitAssertion }
 export { registerAssertion } from './assert'
-export { registerGuidance } from './guidance'
+export { registerGuidance, hitGuidance } from './guidance'
+export type { GuidanceData, GuidanceType } from './guidance'
+
+// Details remain borrowed until emission; callers still evaluate all argument
+// expressions, but suppressed assertions do not read or serialize details.
 
 /**
  * Assert that condition is true every time this function is called, AND that
@@ -19,12 +23,13 @@ export { registerGuidance } from './guidance'
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  */
 export function always(
     condition: boolean,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
@@ -49,12 +54,13 @@ export function always(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  */
 export function alwaysOrUnreachable(
     condition: boolean,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
@@ -79,12 +85,13 @@ export function alwaysOrUnreachable(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  */
 export function sometimes(
     condition: boolean,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
@@ -106,9 +113,10 @@ export function sometimes(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  */
-export function unreachable(message: string, details?: JSONObject) {
+export function unreachable(message: string, details?: JSONObject | null) {
     assertImpl({
         message,
         assertType: 'reachability',
@@ -129,9 +137,10 @@ export function unreachable(message: string, details?: JSONObject) {
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  */
-export function reachable(message: string, details?: JSONObject) {
+export function reachable(message: string, details?: JSONObject | null) {
     assertImpl({
         message,
         assertType: 'reachability',
@@ -156,7 +165,8 @@ export function reachable(message: string, details?: JSONObject) {
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see always
  */
@@ -164,14 +174,15 @@ export function alwaysGreaterThan(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'always',
         mustHit: true,
         condition: left > right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -196,7 +207,8 @@ export function alwaysGreaterThan(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see always
  */
@@ -204,14 +216,15 @@ export function alwaysGreaterThanOrEqualTo(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'always',
         mustHit: true,
         condition: left >= right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -236,7 +249,8 @@ export function alwaysGreaterThanOrEqualTo(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see always
  */
@@ -244,14 +258,15 @@ export function alwaysLessThan(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'always',
         mustHit: true,
         condition: left < right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -276,7 +291,8 @@ export function alwaysLessThan(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see always
  */
@@ -284,14 +300,15 @@ export function alwaysLessThanOrEqualTo(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'always',
         mustHit: true,
         condition: left <= right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -316,7 +333,8 @@ export function alwaysLessThanOrEqualTo(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see sometimes
  */
@@ -324,14 +342,15 @@ export function sometimesGreaterThan(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'sometimes',
         mustHit: true,
         condition: left > right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -356,7 +375,8 @@ export function sometimesGreaterThan(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see sometimes
  */
@@ -364,14 +384,15 @@ export function sometimesGreaterThanOrEqualTo(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'sometimes',
         mustHit: true,
         condition: left >= right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -395,7 +416,8 @@ export function sometimesGreaterThanOrEqualTo(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see sometimes
  */
@@ -403,14 +425,15 @@ export function sometimesLessThan(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'sometimes',
         mustHit: true,
         condition: left < right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -434,7 +457,8 @@ export function sometimesLessThan(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see sometimes
  */
@@ -442,14 +466,15 @@ export function sometimesLessThanOrEqualTo(
     left: number,
     right: number,
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     assertImpl({
         message,
         assertType: 'sometimes',
         mustHit: true,
         condition: left <= right,
-        details: { left, right, ...details },
+        details,
+        guidanceDetails: { left, right },
     })
     guidanceImpl({
         message,
@@ -476,14 +501,15 @@ export function sometimesLessThanOrEqualTo(
  * human-readable. Must be provided as a string literal.
  *
  * @param {JSONObject} details - Additional details that provide greater context
- * for assertion success/failure. Evaluated at runtime.
+ * for assertion success/failure. Omitted or null details are excluded; explicit
+ * empty objects are preserved. Argument expressions are always evaluated.
  *
  * @see always
  */
 export function alwaysSome(
     conditions: { [key: string]: boolean },
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     const condition = Object.values(conditions).some((c) => c)
     assertImpl({
@@ -491,7 +517,8 @@ export function alwaysSome(
         assertType: 'always',
         mustHit: true,
         condition,
-        details: { ...conditions, ...details },
+        details,
+        guidanceDetails: conditions,
     })
     guidanceImpl({
         message,
@@ -525,7 +552,7 @@ export function alwaysSome(
 export function sometimesAll(
     conditions: { [key: string]: boolean },
     message: string,
-    details?: JSONObject
+    details?: JSONObject | null
 ) {
     const condition = Object.values(conditions).every((c) => c)
     assertImpl({
@@ -533,7 +560,8 @@ export function sometimesAll(
         assertType: 'sometimes',
         mustHit: true,
         condition,
-        details: { ...conditions, ...details },
+        details,
+        guidanceDetails: conditions,
     })
     guidanceImpl({
         message,
@@ -548,7 +576,8 @@ function assertImpl(args: {
     assertType: AssertType
     mustHit: boolean
     condition: boolean
-    details?: JSONObject
+    details?: JSONObject | null
+    guidanceDetails?: JSONObject
 }) {
     const id = args.message
     const location = LOCATION_TRACKER.getOr(id, () => locationAtCallStack(4))

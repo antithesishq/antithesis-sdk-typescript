@@ -7,6 +7,7 @@ let
     root = ./.;
     fileset = fs.unions [
       ./src
+      ./scripts
       ./package.json
       ./package-lock.json
       ./tsconfig.json

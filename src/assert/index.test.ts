@@ -3,7 +3,8 @@ import * as assert from '.'
 
 vi.mock(import('../internal/handler'), () => import('../internal/handler.mock'))
 import * as internal from '../internal'
-const outputSpy = vi.spyOn(internal, 'output')
+import { HANDLER } from '../internal/handler'
+const outputSpy = vi.spyOn(HANDLER, 'outputJsonString')
 
 const locationMatcher = {
     class: '',
@@ -58,7 +59,7 @@ test('basic assertions', () => {
         assert.sometimes(n > 5, 'basic 2', { n })
     }
 
-    const events = outputSpy.mock.calls.map(([data]) => data)
+    const events = outputSpy.mock.calls.map(([data]) => JSON.parse(data))
     expect(events).toEqual([
         assertion('always', 'basic 1', false, { n: 0 }),
         assertion('sometimes', 'basic 2', false, { n: 0 }),
@@ -76,7 +77,7 @@ test('rich assertions', () => {
         assert.sometimesGreaterThan(n, 5, 'rich 2', { n })
     }
 
-    const events = outputSpy.mock.calls.map(([data]) => data)
+    const events = outputSpy.mock.calls.map(([data]) => JSON.parse(data))
     const assertionEvents = events.filter(
         (event) => event.antithesis_assert !== undefined
     )

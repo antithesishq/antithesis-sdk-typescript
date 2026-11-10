@@ -3,24 +3,22 @@ import { type LocationInfo, locationToJSON } from './location'
 import { Tracker } from './tracker'
 
 class NumericGuard {
-    #mark: number
+    // Undefined until the first hit
+    #mark: number | undefined
     #maximize: boolean
 
     constructor(maximize: boolean) {
         this.#maximize = maximize
-        this.#mark = maximize
-            ? Number.NEGATIVE_INFINITY
-            : Number.POSITIVE_INFINITY
     }
 
     shouldEmit(value: number) {
-        if (this.#maximize ? this.#mark >= value : this.#mark <= value)
+        if (
+            this.#mark !== undefined &&
+            (this.#maximize ? this.#mark >= value : this.#mark <= value)
+        )
             return false
 
-        // Report NaN values, but don't let them update the mark.
-        if (!Number.isNaN(value)) {
-            this.#mark = value
-        }
+        this.#mark = value
         return true
     }
 }
@@ -55,7 +53,6 @@ export const registerGuidance = ({
             guidance_type: guidanceType,
             maximize,
             hit: false,
-            guidance_data: null,
         },
     })
 }
@@ -74,19 +71,26 @@ export const hitGuidance = <T extends GuidanceType>(
 ) => {
     const { id, message, location, guidanceType, maximize, data } = args
     if (guidanceType === 'numeric') {
+        if (!Number.isFinite(data.left) || !Number.isFinite(data.right)) {
+            internal.nonFiniteGuidanceWarning(id)
+            return
+        }
         const guard = NUMERIC_GUARDS.getOr(id, () => new NumericGuard(maximize))
         if (!guard.shouldEmit(data.left - data.right)) return
     }
 
-    internal.output({
-        antithesis_guidance: {
-            id,
-            message,
-            location: locationToJSON(location),
-            guidance_type: guidanceType,
-            maximize,
-            hit: true,
-            guidance_data: data,
+    internal.outputGuidance(
+        {
+            antithesis_guidance: {
+                id,
+                message,
+                location: locationToJSON(location),
+                guidance_type: guidanceType,
+                maximize,
+                hit: true,
+                guidance_data: data,
+            },
         },
-    })
+        id
+    )
 }
